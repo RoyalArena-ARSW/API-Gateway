@@ -12,7 +12,7 @@ spring:
         - id: cards-catalog-public
           uri: ${CARDS_SERVICE_URL:http://localhost:8081}
           predicates:
-            - Path=/api/cards/**
+            - Path=/api/cards, /api/cards/**
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
 
@@ -20,7 +20,7 @@ spring:
         - id: cards-types-public
           uri: ${CARDS_SERVICE_URL:http://localhost:8081}
           predicates:
-            - Path=/api/troops/**, /api/spells/**, /api/buildings/**
+            - Path=/api/troops, /api/troops/**, /api/spells, /api/spells/**, /api/buildings, /api/buildings/**
             - Method=GET
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
@@ -29,7 +29,7 @@ spring:
         - id: cards-types-protected
           uri: ${CARDS_SERVICE_URL:http://localhost:8081}
           predicates:
-            - Path=/api/troops/**, /api/spells/**, /api/buildings/**
+            - Path=/api/troops, /api/troops/**, /api/spells, /api/spells/**, /api/buildings, /api/buildings/**
           filters:
             - AuthFilter
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
@@ -38,7 +38,7 @@ spring:
         - id: decks-service
           uri: ${CARDS_SERVICE_URL:http://localhost:8081}
           predicates:
-            - Path=/api/decks/**
+            - Path=/api/decks, /api/decks/**
           filters:
             - AuthFilter
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
@@ -66,5 +66,5 @@ management:
 
 logging:
   level:
-    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.gateway: DEBUG
     edu.eci.arsw.royalarena: INFO

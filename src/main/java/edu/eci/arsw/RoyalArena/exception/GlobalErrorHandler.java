@@ -1,4 +1,4 @@
-package com.escuela.techcup.gateway.exception;
+package edu.eci.arsw.RoyalArena.exception;
 
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;

@@ -1,4 +1,4 @@
-package com.escuela.techcup.gateway.filter;
+package edu.eci.arsw.RoyalArena.filter;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;

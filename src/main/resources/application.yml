@@ -1,0 +1,70 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: royalarena-gateway
+  cloud:
+    gateway:
+      routes:
+        # ============ DECK & CARDS SERVICE ============
+        # Catálogo público de cartas (lectura)
+        - id: cards-catalog-public
+          uri: ${CARDS_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/cards/**
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+
+        # Consulta pública de tropas, hechizos, edificios individuales
+        - id: cards-types-public
+          uri: ${CARDS_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/troops/**, /api/spells/**, /api/buildings/**
+            - Method=GET
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+
+        # Creación/eliminación de tropas, hechizos, edificios (admin, requiere auth)
+        - id: cards-types-protected
+          uri: ${CARDS_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/troops/**, /api/spells/**, /api/buildings/**
+          filters:
+            - AuthFilter
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+
+        # Decks: siempre protegido (necesita saber quién es el usuario)
+        - id: decks-service
+          uri: ${CARDS_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/decks/**
+          filters:
+            - AuthFilter
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:RoyalArenaSecretKey2026DefaultOnlyForDev}
+  internal:
+    secret: ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+  security:
+    public-paths:
+      - GET /api/cards
+
+frontend:
+  url: ${FRONTEND_URL:http://localhost:5173}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    edu.eci.arsw.royalarena: INFO

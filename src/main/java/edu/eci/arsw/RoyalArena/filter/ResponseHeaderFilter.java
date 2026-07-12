@@ -1,4 +1,4 @@
-package com.escuela.techcup.gateway.filter;
+package edu.eci.arsw.RoyalArena.filter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

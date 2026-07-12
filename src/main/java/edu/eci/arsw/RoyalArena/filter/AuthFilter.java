@@ -1,4 +1,4 @@
-package com.escuela.techcup.gateway.filter;
+package edu.eci.arsw.RoyalArena.filter;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

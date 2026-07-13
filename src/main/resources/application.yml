@@ -7,6 +7,43 @@ spring:
   cloud:
     gateway:
       routes:
+        # ============ AUTH SERVICE ============
+        # Público: register y login (no requieren token)
+        - id: auth-public
+          uri: ${AUTH_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/auth/register, /api/auth/login
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+
+        # Protegido: /me y cualquier otro endpoint de auth requiere token
+        - id: auth-protected
+          uri: ${AUTH_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - AuthFilter
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+
+        # ============ PROFILE SERVICE ============
+        # Consulta pública: leaderboard y búsqueda
+        - id: profiles-public-queries
+          uri: ${PROFILE_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/profiles/leaderboard, /api/profiles/search
+            - Method=GET
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+
+        # Resto de perfiles: protegido (incluye crear, ver mi perfil, editar)
+        - id: profiles-protected
+          uri: ${PROFILE_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/profiles, /api/profiles/**
+          filters:
+            - AuthFilter
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+
         # ============ DECK & CARDS SERVICE ============
         # Catálogo público de cartas (lectura)
         - id: cards-catalog-public
@@ -43,6 +80,7 @@ spring:
             - AuthFilter
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
 
+        
 app:
   jwt:
     secret: ${JWT_SECRET:RoyalArenaSecretKey2026DefaultOnlyForDev}
@@ -50,7 +88,11 @@ app:
     secret: ${INTERNAL_SECRET:royalarena-internal-secret-dev}
   security:
     public-paths:
+      - POST /api/auth/register
+      - POST /api/auth/login
       - GET /api/cards
+      - GET /api/profiles/leaderboard
+      - GET /api/profiles/search
 
 frontend:
   url: ${FRONTEND_URL:http://localhost:5173}

@@ -22,7 +22,6 @@ spring:
           predicates:
             - Path=/api/auth/**
           filters:
-            - AuthFilter
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
 
         # ============ PROFILE SERVICE ============
@@ -41,7 +40,6 @@ spring:
           predicates:
             - Path=/api/profiles, /api/profiles/**
           filters:
-            - AuthFilter
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
 
         # ============ DECK & CARDS SERVICE ============
@@ -68,7 +66,6 @@ spring:
           predicates:
             - Path=/api/troops, /api/troops/**, /api/spells, /api/spells/**, /api/buildings, /api/buildings/**
           filters:
-            - AuthFilter
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
 
         # Decks: siempre protegido (necesita saber quién es el usuario)
@@ -77,13 +74,12 @@ spring:
           predicates:
             - Path=/api/decks, /api/decks/**
           filters:
-            - AuthFilter
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
 
         
 app:
   jwt:
-    secret: ${JWT_SECRET:RoyalArenaSecretKey2026DefaultOnlyForDev}
+    secret: ${JWT_SECRET:RoyalArena2026SuperLongSecretKeyForHmacSha512JwtValidation!!!!!}
   internal:
     secret: ${INTERNAL_SECRET:royalarena-internal-secret-dev}
   security:

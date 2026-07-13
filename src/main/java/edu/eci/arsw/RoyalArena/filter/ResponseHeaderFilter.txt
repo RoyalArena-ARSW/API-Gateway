@@ -20,7 +20,7 @@ import java.util.List;
  * downstream services so that the gateway can set permissive CORS headers.
  * Allows ALL origins with credentials — for development only.
  */
-@Component
+// @Component
 public class ResponseHeaderFilter implements GlobalFilter, Ordered {
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHeaderFilter.class);
@@ -33,16 +33,20 @@ public class ResponseHeaderFilter implements GlobalFilter, Ordered {
         response.beforeCommit(() -> {
             try {
                 var headers = response.getHeaders();
-                headers.remove(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
-                headers.remove(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
-
-                // Allow any origin — fully permissive CORS
-                String allowedOrigin = (origin != null && !origin.isBlank()) ? origin : "*";
-                headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, allowedOrigin);
-                headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
-                headers.add(HttpHeaders.VARY, HttpHeaders.ORIGIN);
+                
+                // Solo intenta modificar si aún no está committed
+                if (!response.isCommitted()) {
+                    headers.remove(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
+                    headers.remove(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
+                    
+                    String allowedOrigin = (origin != null && !origin.isBlank()) ? origin : "*";
+                    headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, allowedOrigin);
+                    headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+                    headers.add(HttpHeaders.VARY, HttpHeaders.ORIGIN);
+                }
             } catch (Exception e) {
-                log.warn("Failed to normalize response CORS headers", e);
+                // No fallar el request si hay problema con headers de CORS
+                log.warn("Failed to normalize CORS headers (non-fatal): {}", e.getMessage());
             }
             return Mono.<Void>empty();
         });

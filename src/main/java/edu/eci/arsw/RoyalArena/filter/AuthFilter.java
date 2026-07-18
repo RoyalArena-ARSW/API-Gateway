@@ -21,7 +21,10 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+
+import edu.eci.arsw.RoyalArena.config.SecurityConfig;
 import reactor.core.publisher.Mono;
+import org.springframework.util.AntPathMatcher;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -32,8 +35,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class AuthFilter implements GlobalFilter, Ordered {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthFilter.class);
+    private final SecurityConfig securityConfig;
 
+    private static final Logger log = LoggerFactory.getLogger(AuthFilter.class);
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    
     @Value("${app.jwt.secret}")
     private String jwtSecret;
 
@@ -44,6 +50,8 @@ public class AuthFilter implements GlobalFilter, Ordered {
     private List<String> publicPaths;
 
     private volatile Set<String> publicPathSet;
+
+    
 
     private Set<String> getPublicPathSet() {
         if (publicPathSet == null) {
@@ -60,12 +68,16 @@ public class AuthFilter implements GlobalFilter, Ordered {
         return publicPathSet;
     }
 
+    public AuthFilter(SecurityConfig securityConfig) {
+        this.securityConfig = securityConfig;
+    }
+
     private boolean isPublicPath(HttpMethod method, String path) {
-        if (method == HttpMethod.OPTIONS) {
-            return true;
-        }
-        String key = method.name() + " " + path;
-        return getPublicPathSet().contains(key);
+        if (method == HttpMethod.OPTIONS) return true;
+        
+        // Usa directamente securityConfig.getPublicPaths()
+        return securityConfig.getPublicPaths().stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
     @Override
@@ -111,10 +123,10 @@ public class AuthFilter implements GlobalFilter, Ordered {
             return onError(exchange, "TOKEN_INVALIDO", "Token inválido", HttpStatus.UNAUTHORIZED);
         }
 
-        String userId = claims.get("userId", String.class);
-        if (userId == null) {
-            userId = claims.getSubject();
-        }
+        Object userIdClaim = claims.get("userId");
+        String userId = (userIdClaim != null)
+                ? String.valueOf(userIdClaim)
+                : claims.getSubject();
         if (userId == null || userId.isBlank()) {
             log.warn("Auth failed: token without user id on path {} {}", method, path);
             return onError(exchange, "TOKEN_INVALIDO", "Token invalido", HttpStatus.UNAUTHORIZED);
@@ -146,7 +158,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -1;
+        return 1;
     }
 
     private void addCorsHeaders(ServerWebExchange exchange, ServerHttpResponse response) {

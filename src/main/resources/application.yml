@@ -8,24 +8,19 @@ spring:
     gateway:
       routes:
         # ============ AUTH SERVICE ============
-        # Público: register y login (no requieren token)
         - id: auth-public
           uri: ${AUTH_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/auth/register, /api/auth/login
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
-
-        # Protegido: /me y cualquier otro endpoint de auth requiere token
         - id: auth-protected
           uri: ${AUTH_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/auth/**
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
-
         # ============ PROFILE SERVICE ============
-        # Consulta pública: leaderboard y búsqueda
         - id: profiles-public-queries
           uri: ${PROFILE_SERVICE_URL:http://localhost:8083}
           predicates:
@@ -33,25 +28,19 @@ spring:
             - Method=GET
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
-
-        # Resto de perfiles: protegido (incluye crear, ver mi perfil, editar)
         - id: profiles-protected
           uri: ${PROFILE_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/profiles, /api/profiles/**
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
-
         # ============ DECK & CARDS SERVICE ============
-        # Catálogo público de cartas (lectura)
         - id: cards-catalog-public
           uri: ${CARDS_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/cards, /api/cards/**
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
-
-        # Consulta pública de tropas, hechizos, edificios individuales
         - id: cards-types-public
           uri: ${CARDS_SERVICE_URL:http://localhost:8081}
           predicates:
@@ -59,16 +48,12 @@ spring:
             - Method=GET
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
-
-        # Creación/eliminación de tropas, hechizos, edificios (admin, requiere auth)
         - id: cards-types-protected
           uri: ${CARDS_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/troops, /api/troops/**, /api/spells, /api/spells/**, /api/buildings, /api/buildings/**
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
-
-        # Decks: siempre protegido (necesita saber quién es el usuario)
         - id: decks-service
           uri: ${CARDS_SERVICE_URL:http://localhost:8081}
           predicates:
@@ -76,19 +61,18 @@ spring:
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
 
-        
 app:
   jwt:
-    secret: ${JWT_SECRET:RoyalArena2026SuperLongSecretKeyForHmacSha512JwtValidation!!!!!}
+    secret: "RoyalArena2026SuperLongSecretKeyForHmacSha512JwtValidation!!!!!"
   internal:
-    secret: ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+    secret: "royalarena-internal-secret-dev"
   security:
     public-paths:
-      - POST /api/auth/register
-      - POST /api/auth/login
-      - GET /api/cards
-      - GET /api/profiles/leaderboard
-      - GET /api/profiles/search
+      - "/api/auth/register"
+      - "/api/auth/login"
+      - "/api/cards"
+      - "/api/profiles/leaderboard"
+      - "/api/profiles/search"
 
 frontend:
   url: ${FRONTEND_URL:http://localhost:5173}

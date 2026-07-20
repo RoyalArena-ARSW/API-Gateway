@@ -1,0 +1,92 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: royalarena-gateway
+  cloud:
+    gateway:
+      routes:
+        # ============ AUTH SERVICE ============
+        - id: auth-public
+          uri: ${AUTH_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/auth/register, /api/auth/login
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+        - id: auth-protected
+          uri: ${AUTH_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+        # ============ PROFILE SERVICE ============
+        - id: profiles-public-queries
+          uri: ${PROFILE_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/profiles/leaderboard, /api/profiles/search
+            - Method=GET
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+        - id: profiles-protected
+          uri: ${PROFILE_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/profiles, /api/profiles/**
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+        # ============ DECK & CARDS SERVICE ============
+        - id: cards-catalog-public
+          uri: ${CARDS_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/cards, /api/cards/**
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+        - id: cards-types-public
+          uri: ${CARDS_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/troops, /api/troops/**, /api/spells, /api/spells/**, /api/buildings, /api/buildings/**
+            - Method=GET
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+        - id: cards-types-protected
+          uri: ${CARDS_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/troops, /api/troops/**, /api/spells, /api/spells/**, /api/buildings, /api/buildings/**
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+        - id: decks-service
+          uri: ${CARDS_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/decks, /api/decks/**
+          filters:
+            - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
+
+app:
+  jwt:
+    secret: "RoyalArena2026SuperLongSecretKeyForHmacSha512JwtValidation!!!!!"
+  internal:
+    secret: "royalarena-internal-secret-dev"
+  security:
+    public-paths:
+      - "/api/auth/register"
+      - "/api/auth/login"
+      - "/api/cards"
+      - "/api/profiles/leaderboard"
+      - "/api/profiles/search"
+
+frontend:
+  url: ${FRONTEND_URL:http://localhost:5173}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    edu.eci.arsw.royalarena: INFO

@@ -54,14 +54,17 @@ class AuthFilterTest {
     @BeforeEach
     void setUp() {
         SecurityConfig config = new SecurityConfig();
+        // Corrección: Solo las rutas, sin los verbos HTTP
+        config.setPublicPaths(List.of(
+                "/api/auth/register",
+                "/api/auth/login",
+                "/api/cards",
+                "/api/profiles/leaderboard"
+        ));
+        
         authFilter = new AuthFilter(config);
         ReflectionTestUtils.setField(authFilter, "jwtSecret", SECRET);
         ReflectionTestUtils.setField(authFilter, "internalSecret", INTERNAL_SECRET);
-        ReflectionTestUtils.setField(authFilter, "publicPaths", List.of(
-                "POST /api/auth/register",
-                "POST /api/auth/login",
-                "GET /api/cards",
-                "GET /api/profiles/leaderboard"));
 
         chain = mock(GatewayFilterChain.class);
         when(chain.filter(any())).thenReturn(Mono.empty());
@@ -342,23 +345,4 @@ class AuthFilterTest {
                 .isEqualTo("42");
     }
 
-    /**
-     * Documenta el mecanismo exacto de la falla. Este SÍ pasa hoy — y cuando
-     * apliques el fix, hay que borrarlo (dejará de aplicar).
-     */
-    @Test
-    @DisplayName("BUG documentado: el claim numerico lanza RequiredTypeException sin manejar")
-    void numericClaimThrowsUnhandled() {
-        String realToken = Jwts.builder()
-                .subject("42").claim("userId", 42L).claim("role", "PLAYER")
-                .expiration(new Date(System.currentTimeMillis() + 3_600_000))
-                .signWith(key()).compact();
-
-        MockServerWebExchange exchange = getWithToken("/api/profiles/me", realToken);
-
-        // RequiredTypeException extiende JwtException, pero se lanza FUERA del
-        // try-catch → propaga → 500 en vez de 401 o de funcionar.
-        assertThatThrownBy(() -> authFilter.filter(exchange, chain).block())
-                .isInstanceOf(io.jsonwebtoken.RequiredTypeException.class);
-    }
 }

@@ -54,6 +54,14 @@ class AuthFilterTest {
     @BeforeEach
     void setUp() {
         SecurityConfig config = new SecurityConfig();
+        
+        config.setPublicPaths(List.of(
+                "POST /api/auth/register",
+                "POST /api/auth/login",
+                "GET /api/cards",
+                "GET /api/profiles/leaderboard"
+        ));
+
         authFilter = new AuthFilter(config);
         ReflectionTestUtils.setField(authFilter, "jwtSecret", SECRET);
         ReflectionTestUtils.setField(authFilter, "internalSecret", INTERNAL_SECRET);

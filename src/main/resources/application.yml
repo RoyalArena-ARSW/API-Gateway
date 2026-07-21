@@ -61,7 +61,7 @@ spring:
           filters:
             - AddRequestHeader=X-Internal-Secret, ${INTERNAL_SECRET:royalarena-internal-secret-dev}
         - id: replay-service
-          uri: http://localhost:8085
+          uri: ${REPLAY_SERVICE_URL:http://localhost:8085}
           predicates:
             - Path=/api/replays/**
 

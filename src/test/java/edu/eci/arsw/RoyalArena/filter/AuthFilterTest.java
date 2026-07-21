@@ -59,7 +59,8 @@ class AuthFilterTest {
                 "/api/auth/register",
                 "/api/auth/login",
                 "/api/cards",
-                "/api/profiles/leaderboard"
+                "/api/profiles/leaderboard",
+                "/api/profiles/search"
         ));
         
         authFilter = new AuthFilter(config);
